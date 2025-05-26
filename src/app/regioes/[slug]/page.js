@@ -2,8 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { apiService } from '@/lib/api';
+import CountryFlag from '@/components/CountryFlag';
 import { Button } from '@/components/ui/button';
+import WineryCard from '@/components/WineryCard';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -129,7 +132,9 @@ export default function RegionDetailPage({ params }) {
               {/* Country */}
               {region.country && (
                 <div className="flex items-center text-lg mb-4">
-                  <span className="mr-2">🌍</span>
+                  <span className="mr-2">
+                    <CountryFlag countryName={region.country.name} size="w-5 h-5" />
+                  </span>
                   <Link href={`/paises/${region.country.slug}`} className="hover:underline">
                     {region.country.name}
                   </Link>
@@ -200,7 +205,9 @@ export default function RegionDetailPage({ params }) {
                 <h3 className="text-lg font-bold text-gray-900 mb-4">País</h3>
                 <Link href={`/paises/${region.country.slug}`} className="block text-blue-600 hover:text-blue-800">
                   <div className="flex items-center">
-                    <span className="mr-2">🌍</span>
+                    <span className="mr-2">
+                      <CountryFlag countryName={region.country.name} size="w-5 h-5" />
+                    </span>
                     <span className="font-medium">{region.country.name}</span>
                   </div>
                   <p className="text-sm text-gray-600 mt-2">
@@ -260,55 +267,5 @@ export default function RegionDetailPage({ params }) {
         </div>
       </div>
     </div>
-  );
-}
-
-function WineryCard({ winery }) {
-  return (
-    <Link href={`/vinicolas/${winery.slug}`}>
-      <div className="bg-gray-50 rounded-lg p-6 hover:shadow-md transition-shadow duration-300 border border-gray-200 hover:border-green-300">
-        <div className="flex items-start justify-between mb-3">
-          <h3 className="text-lg font-semibold text-gray-900 hover:text-green-600 transition-colors">
-            {winery.name}
-          </h3>
-          <span className="text-2xl">🏭</span>
-        </div>
-
-        {/* Description */}
-        {winery.description && (
-          <p className="text-gray-600 text-sm mb-3 line-clamp-2">
-            {winery.description}
-          </p>
-        )}
-
-        {/* Wine Count */}
-        {winery.wines_count !== undefined && (
-          <div className="flex items-center justify-between text-sm mb-3">
-            <span className="text-gray-500">Vinhos:</span>
-            <span className="font-medium text-green-600">
-              {winery.wines_count}
-            </span>
-          </div>
-        )}
-
-        {/* Established Year */}
-        {winery.established_year && (
-          <div className="flex items-center text-sm text-gray-600 mb-3">
-            <span className="mr-1">📅</span>
-            <span>Fundada em {winery.established_year}</span>
-          </div>
-        )}
-
-        {/* Action indicator */}
-        <div className="pt-3 border-t border-gray-100">
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-green-600 font-medium">
-              Ver vinícola
-            </span>
-            <span className="text-green-600 group-hover:translate-x-1 transition-transform">→</span>
-          </div>
-        </div>
-      </div>
-    </Link>
   );
 } 

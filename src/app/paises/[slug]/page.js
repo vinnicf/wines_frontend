@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { apiService } from '@/lib/api';
+import CountryFlag from '@/components/CountryFlag';
 import { Button } from '@/components/ui/button';
 import {
   Breadcrumb,
@@ -138,7 +139,9 @@ export default function CountryDetailPage({ params }) {
             </div>
 
             <div className="text-center lg:text-right">
-              <div className="text-8xl mb-4">🌍</div>
+              <div className="mb-4">
+                <CountryFlag countryName={country.name} size="w-20 h-20" />
+              </div>
             </div>
           </div>
         </div>

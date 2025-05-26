@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { apiService } from '@/lib/api';
+import CountryFlag from '@/components/CountryFlag';
 import { Button } from '@/components/ui/button';
 import {
   Breadcrumb,
@@ -189,7 +190,7 @@ function CountryCard({ country }) {
             <h3 className="text-xl font-bold">
               {country.name}
             </h3>
-            <span className="text-3xl">🌍</span>
+            <CountryFlag countryName={country.name} size="w-8 h-8" />
           </div>
         </div>
 

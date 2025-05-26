@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { apiService } from '@/lib/api';
-import CountryFlag from '@/components/CountryFlag';
 import { Button } from '@/components/ui/button';
 import {
   Breadcrumb,
@@ -14,27 +14,39 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 
-export default function RegioesPage() {
-  const [regions, setRegions] = useState([]);
+export default function VinhosClient() {
+  const [wines, setWines] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState('name');
+  const [selectedType, setSelectedType] = useState('');
+  const [sortBy, setSortBy] = useState('-rating');
+
+  const wineTypes = [
+    'Vinho Tinto',
+    'Vinho Branco',
+    'Vinho Rosé',
+    'Champagne',
+    'Vinho Espumante',
+    'Vinho Doce',
+    'Vinho Fortificado'
+  ];
 
   useEffect(() => {
-    loadRegions();
-  }, [searchTerm, sortBy]);
+    loadWines();
+  }, [searchTerm, selectedType, sortBy]);
 
-  const loadRegions = async () => {
+  const loadWines = async () => {
     try {
       setLoading(true);
       const params = {
         ordering: sortBy,
         ...(searchTerm && { search: searchTerm }),
+        ...(selectedType && { wine_type: selectedType }),
       };
-      const data = await apiService.getRegions(params);
-      setRegions(data.results || data);
+      const data = await apiService.getWines(params);
+      setWines(data.results || data);
     } catch (error) {
-      console.error('Erro ao carregar regiões:', error);
+      console.error('Erro ao carregar vinhos:', error);
     } finally {
       setLoading(false);
     }
@@ -44,16 +56,6 @@ export default function RegioesPage() {
     e.preventDefault();
     loadWines();
   };
-
-  // Group regions by country
-  const regionsByCountry = regions.reduce((acc, region) => {
-    const countryName = region.country?.name || 'Outros';
-    if (!acc[countryName]) {
-      acc[countryName] = [];
-    }
-    acc[countryName].push(region);
-    return acc;
-  }, {});
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -65,13 +67,13 @@ export default function RegioesPage() {
               🍷 VinhoApp
             </Link>
             <div className="hidden md:flex space-x-6">
-              <Link href="/vinhos" className="text-gray-700 hover:text-purple-600 transition-colors">
+              <Link href="/vinhos" className="text-purple-600 font-semibold">
                 Vinhos
               </Link>
               <Link href="/vinicolas" className="text-gray-700 hover:text-purple-600 transition-colors">
                 Vinícolas
               </Link>
-              <Link href="/regioes" className="text-purple-600 font-semibold">
+              <Link href="/regioes" className="text-gray-700 hover:text-purple-600 transition-colors">
                 Regiões
               </Link>
               <Link href="/paises" className="text-gray-700 hover:text-purple-600 transition-colors">
@@ -94,7 +96,7 @@ export default function RegioesPage() {
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbPage>Regiões</BreadcrumbPage>
+              <BreadcrumbPage>Vinhos</BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
@@ -102,29 +104,48 @@ export default function RegioesPage() {
         {/* Page Header */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            Regiões Vinícolas
+            Explore Nossos Vinhos
           </h1>
           <p className="text-lg text-gray-600">
-            Explore as famosas regiões produtoras de vinho ao redor do mundo
+            Descubra uma seleção cuidadosa de vinhos de todo o mundo
           </p>
         </div>
 
         {/* Search and Filters */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-8">
           <form onSubmit={handleSearch} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* Search Input */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Buscar Regiões
+                  Buscar Vinhos
                 </label>
                 <input
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Nome da região, país..."
+                  placeholder="Nome do vinho, vinícola..."
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
                 />
+              </div>
+
+              {/* Wine Type Filter */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Tipo de Vinho
+                </label>
+                <select
+                  value={selectedType}
+                  onChange={(e) => setSelectedType(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                >
+                  <option value="">Todos os tipos</option>
+                  {wineTypes.map((type) => (
+                    <option key={type} value={type}>
+                      {type}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               {/* Sort By */}
@@ -137,10 +158,12 @@ export default function RegioesPage() {
                   onChange={(e) => setSortBy(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
                 >
+                  <option value="-rating">Maior Avaliação</option>
+                  <option value="rating">Menor Avaliação</option>
                   <option value="name">Nome A-Z</option>
                   <option value="-name">Nome Z-A</option>
-                  <option value="country__name">País A-Z</option>
-                  <option value="-country__name">País Z-A</option>
+                  <option value="-price">Maior Preço</option>
+                  <option value="price">Menor Preço</option>
                 </select>
               </div>
             </div>
@@ -151,45 +174,25 @@ export default function RegioesPage() {
         {loading && (
           <div className="text-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Carregando regiões...</p>
+            <p className="text-gray-600">Carregando vinhos...</p>
           </div>
         )}
 
-        {/* Regions grouped by country */}
+        {/* Wine Grid */}
         {!loading && (
-          <div className="space-y-8">
-            {Object.entries(regionsByCountry).map(([countryName, countryRegions]) => (
-              <div key={countryName} className="bg-white rounded-lg shadow-md overflow-hidden">
-                <div className="bg-gradient-to-r from-green-500 to-blue-600 text-white p-4">
-                  <h2 className="text-2xl font-bold flex items-center">
-                    <span className="mr-3">
-                      <CountryFlag countryName={countryName} size="w-6 h-6" />
-                    </span>
-                    {countryName}
-                    <span className="ml-3 bg-white/20 px-3 py-1 rounded-full text-sm">
-                      {countryRegions.length} {countryRegions.length === 1 ? 'região' : 'regiões'}
-                    </span>
-                  </h2>
-                </div>
-                
-                <div className="p-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {countryRegions.map((region) => (
-                      <RegionCard key={region.slug} region={region} />
-                    ))}
-                  </div>
-                </div>
-              </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {wines.map((wine) => (
+              <WineCard key={wine.slug} wine={wine} />
             ))}
           </div>
         )}
 
         {/* No Results */}
-        {!loading && regions.length === 0 && (
+        {!loading && wines.length === 0 && (
           <div className="text-center py-12">
-            <div className="text-gray-400 text-6xl mb-4">🗺️</div>
+            <div className="text-gray-400 text-6xl mb-4">🍷</div>
             <h3 className="text-xl font-semibold text-gray-700 mb-2">
-              Nenhuma região encontrada
+              Nenhum vinho encontrado
             </h3>
             <p className="text-gray-600 mb-4">
               Tente ajustar seus filtros de busca
@@ -197,7 +200,8 @@ export default function RegioesPage() {
             <Button
               onClick={() => {
                 setSearchTerm('');
-                setSortBy('name');
+                setSelectedType('');
+                setSortBy('-rating');
               }}
               variant="outline"
             >
@@ -210,53 +214,65 @@ export default function RegioesPage() {
   );
 }
 
-function RegionCard({ region }) {
+function WineCard({ wine }) {
+  const imageUrl = apiService.getWineImageUrl(wine.vivino_id);
+  
   return (
-    <Link href={`/regioes/${region.slug}`}>
-      <div className="border border-gray-200 rounded-lg p-4 hover:shadow-md hover:border-purple-300 transition-all duration-300 group">
-        <div className="flex items-start justify-between mb-3">
-          <h3 className="text-lg font-semibold text-gray-900 group-hover:text-purple-600 transition-colors">
-            {region.name}
-          </h3>
-          <span className="text-2xl">📍</span>
-        </div>
-
-        {/* Description */}
-        {region.description && (
-          <p className="text-gray-600 text-sm mb-3 line-clamp-2">
-            {region.description}
-          </p>
-        )}
-
-        {/* Statistics */}
-        <div className="space-y-2">
-          {region.winery_count !== undefined && (
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-gray-500">Vinícolas:</span>
-              <span className="font-medium text-purple-600">
-                {region.winery_count}
-              </span>
-            </div>
-          )}
-          
-          {region.wine_count !== undefined && (
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-gray-500">Vinhos:</span>
-              <span className="font-medium text-purple-600">
-                {region.wine_count}
-              </span>
-            </div>
-          )}
-        </div>
-
-        {/* Action indicator */}
-        <div className="mt-3 pt-3 border-t border-gray-100">
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-purple-600 font-medium">
-              Explorar região
-            </span>
-            <span className="text-purple-600 group-hover:translate-x-1 transition-transform">→</span>
+    <Link href={`/vinhos/${wine.slug}`}>
+      <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden group">
+        {/* Wine Image */}
+        <div className="relative h-64 bg-gradient-to-br from-purple-50 to-red-50 flex items-center justify-center">
+          {imageUrl ? (
+            <Image
+              src={imageUrl}
+              alt={wine.name}
+              width={120}
+              height={200}
+              className="object-contain max-h-full group-hover:scale-105 transition-transform duration-300"
+              onError={(e) => {
+                e.target.style.display = 'none';
+                e.target.nextSibling.style.display = 'flex';
+              }}
+            />
+          ) : null}
+          <div className="absolute inset-0 flex items-center justify-center text-6xl text-gray-300" style={{display: imageUrl ? 'none' : 'flex'}}>
+            🍷
           </div>
+        </div>
+
+        {/* Wine Details */}
+        <div className="p-4">
+          <h3 className="font-semibold text-lg text-gray-900 mb-2 line-clamp-2">
+            {wine.name}
+          </h3>
+          
+          <p className="text-sm text-gray-600 mb-2">
+            {wine.winery?.name}
+          </p>
+
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm text-purple-600 font-medium">
+              {wine.wine_type}
+            </span>
+            {wine.rating && (
+              <div className="flex items-center">
+                <span className="text-yellow-500 mr-1">⭐</span>
+                <span className="text-sm font-medium">{wine.rating}</span>
+              </div>
+            )}
+          </div>
+
+          {wine.region && (
+            <p className="text-xs text-gray-500">
+              {wine.region.name}, {wine.region.country?.name}
+            </p>
+          )}
+
+          {wine.price && (
+            <p className="text-lg font-bold text-green-600 mt-2">
+              R$ {wine.price}
+            </p>
+          )}
         </div>
       </div>
     </Link>

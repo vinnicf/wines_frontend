@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { apiService } from '@/lib/api';
-import CountryFlag from '@/components/CountryFlag';
 import { Button } from '@/components/ui/button';
+import WineryCard from '@/components/WineryCard';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -14,27 +14,27 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 
-export default function RegioesPage() {
-  const [regions, setRegions] = useState([]);
+export default function VinicolasClient() {
+  const [wineries, setWineries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('name');
 
   useEffect(() => {
-    loadRegions();
+    loadWineries();
   }, [searchTerm, sortBy]);
 
-  const loadRegions = async () => {
+  const loadWineries = async () => {
     try {
       setLoading(true);
       const params = {
         ordering: sortBy,
         ...(searchTerm && { search: searchTerm }),
       };
-      const data = await apiService.getRegions(params);
-      setRegions(data.results || data);
+      const data = await apiService.getWineries(params);
+      setWineries(data.results || data);
     } catch (error) {
-      console.error('Erro ao carregar regiões:', error);
+      console.error('Erro ao carregar vinícolas:', error);
     } finally {
       setLoading(false);
     }
@@ -42,18 +42,8 @@ export default function RegioesPage() {
 
   const handleSearch = (e) => {
     e.preventDefault();
-    loadWines();
+    loadWineries();
   };
-
-  // Group regions by country
-  const regionsByCountry = regions.reduce((acc, region) => {
-    const countryName = region.country?.name || 'Outros';
-    if (!acc[countryName]) {
-      acc[countryName] = [];
-    }
-    acc[countryName].push(region);
-    return acc;
-  }, {});
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -68,10 +58,10 @@ export default function RegioesPage() {
               <Link href="/vinhos" className="text-gray-700 hover:text-purple-600 transition-colors">
                 Vinhos
               </Link>
-              <Link href="/vinicolas" className="text-gray-700 hover:text-purple-600 transition-colors">
+              <Link href="/vinicolas" className="text-purple-600 font-semibold">
                 Vinícolas
               </Link>
-              <Link href="/regioes" className="text-purple-600 font-semibold">
+              <Link href="/regioes" className="text-gray-700 hover:text-purple-600 transition-colors">
                 Regiões
               </Link>
               <Link href="/paises" className="text-gray-700 hover:text-purple-600 transition-colors">
@@ -94,7 +84,7 @@ export default function RegioesPage() {
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbPage>Regiões</BreadcrumbPage>
+              <BreadcrumbPage>Vinícolas</BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
@@ -102,10 +92,10 @@ export default function RegioesPage() {
         {/* Page Header */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            Regiões Vinícolas
+            Vinícolas do Mundo
           </h1>
           <p className="text-lg text-gray-600">
-            Explore as famosas regiões produtoras de vinho ao redor do mundo
+            Conheça as melhores vinícolas e suas tradições vinícolas
           </p>
         </div>
 
@@ -116,13 +106,13 @@ export default function RegioesPage() {
               {/* Search Input */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Buscar Regiões
+                  Buscar Vinícolas
                 </label>
                 <input
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Nome da região, país..."
+                  placeholder="Nome da vinícola, região..."
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
                 />
               </div>
@@ -139,8 +129,8 @@ export default function RegioesPage() {
                 >
                   <option value="name">Nome A-Z</option>
                   <option value="-name">Nome Z-A</option>
-                  <option value="country__name">País A-Z</option>
-                  <option value="-country__name">País Z-A</option>
+                  <option value="-wine_count">Mais Vinhos</option>
+                  <option value="wine_count">Menos Vinhos</option>
                 </select>
               </div>
             </div>
@@ -151,45 +141,25 @@ export default function RegioesPage() {
         {loading && (
           <div className="text-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Carregando regiões...</p>
+            <p className="text-gray-600">Carregando vinícolas...</p>
           </div>
         )}
 
-        {/* Regions grouped by country */}
+        {/* Wineries Grid */}
         {!loading && (
-          <div className="space-y-8">
-            {Object.entries(regionsByCountry).map(([countryName, countryRegions]) => (
-              <div key={countryName} className="bg-white rounded-lg shadow-md overflow-hidden">
-                <div className="bg-gradient-to-r from-green-500 to-blue-600 text-white p-4">
-                  <h2 className="text-2xl font-bold flex items-center">
-                    <span className="mr-3">
-                      <CountryFlag countryName={countryName} size="w-6 h-6" />
-                    </span>
-                    {countryName}
-                    <span className="ml-3 bg-white/20 px-3 py-1 rounded-full text-sm">
-                      {countryRegions.length} {countryRegions.length === 1 ? 'região' : 'regiões'}
-                    </span>
-                  </h2>
-                </div>
-                
-                <div className="p-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {countryRegions.map((region) => (
-                      <RegionCard key={region.slug} region={region} />
-                    ))}
-                  </div>
-                </div>
-              </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {wineries.map((winery) => (
+              <WineryCard key={winery.slug} winery={winery} />
             ))}
           </div>
         )}
 
         {/* No Results */}
-        {!loading && regions.length === 0 && (
+        {!loading && wineries.length === 0 && (
           <div className="text-center py-12">
-            <div className="text-gray-400 text-6xl mb-4">🗺️</div>
+            <div className="text-gray-400 text-6xl mb-4">🏭</div>
             <h3 className="text-xl font-semibold text-gray-700 mb-2">
-              Nenhuma região encontrada
+              Nenhuma vinícola encontrada
             </h3>
             <p className="text-gray-600 mb-4">
               Tente ajustar seus filtros de busca
@@ -207,58 +177,5 @@ export default function RegioesPage() {
         )}
       </div>
     </div>
-  );
-}
-
-function RegionCard({ region }) {
-  return (
-    <Link href={`/regioes/${region.slug}`}>
-      <div className="border border-gray-200 rounded-lg p-4 hover:shadow-md hover:border-purple-300 transition-all duration-300 group">
-        <div className="flex items-start justify-between mb-3">
-          <h3 className="text-lg font-semibold text-gray-900 group-hover:text-purple-600 transition-colors">
-            {region.name}
-          </h3>
-          <span className="text-2xl">📍</span>
-        </div>
-
-        {/* Description */}
-        {region.description && (
-          <p className="text-gray-600 text-sm mb-3 line-clamp-2">
-            {region.description}
-          </p>
-        )}
-
-        {/* Statistics */}
-        <div className="space-y-2">
-          {region.winery_count !== undefined && (
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-gray-500">Vinícolas:</span>
-              <span className="font-medium text-purple-600">
-                {region.winery_count}
-              </span>
-            </div>
-          )}
-          
-          {region.wine_count !== undefined && (
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-gray-500">Vinhos:</span>
-              <span className="font-medium text-purple-600">
-                {region.wine_count}
-              </span>
-            </div>
-          )}
-        </div>
-
-        {/* Action indicator */}
-        <div className="mt-3 pt-3 border-t border-gray-100">
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-purple-600 font-medium">
-              Explorar região
-            </span>
-            <span className="text-purple-600 group-hover:translate-x-1 transition-transform">→</span>
-          </div>
-        </div>
-      </div>
-    </Link>
   );
 } 
